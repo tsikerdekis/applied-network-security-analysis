@@ -28,17 +28,20 @@ prompt_if_empty() {
 }
 
 install_zxcvbn() {
-    # Determine package manager
-    if [ -x "$(command -v apt)" ]; then
-        sudo apt update
-        sudo apt install -y python3-zxcvbn
-    elif [ -x "$(command -v yum)" ]; then
-        sudo yum install -y python3-zxcvbn
-    elif [ -x "$(command -v dnf)" ]; then
-        sudo dnf install -y python3-zxcvbn
-    else
-        echo "Unsupported package manager. Install python3-zxcvbn manually."
-        exit 1
+    # Install zxcvbn via pip which is more reliable
+    if ! python3 -m pip install zxcvbn &>/dev/null; then
+        # Fallback to using system package manager
+        if [ -x "$(command -v apt)" ]; then
+            sudo apt update
+            sudo apt install -y python3-zxcvbn
+        elif [ -x "$(command -v yum)" ]; then
+            sudo yum install -y python3-zxcvbn
+        elif [ -x "$(command -v dnf)" ]; then
+            sudo dnf install -y python3-zxcvbn
+        else
+            echo "Failed to install zxcvbn. Please install it manually with: pip install zxcvbn"
+            exit 1
+        fi
     fi
 }
 
@@ -187,3 +190,23 @@ echo "Bringing up the full Docker Compose environment..."
 
 # Start Docker Compose
 sudo docker compose up -d
+
+# Display access information
+echo ""
+echo "=========================================="
+echo "OpenSearch Setup Complete!"
+echo "=========================================="
+echo ""
+echo "To access OpenSearch Dashboards:"
+echo "  URL: https://localhost:5601"
+echo "  Username: admin"
+echo "  Password: $OPENSEARCH_INITIAL_ADMIN_PASSWORD"
+echo ""
+echo "OpenSearch API:"
+echo "  URL: https://localhost:9200"
+echo "  Username: admin"
+echo "  Password: $OPENSEARCH_INITIAL_ADMIN_PASSWORD"
+echo ""
+echo "Note: You may need to accept the SSL certificate warning in your browser."
+echo "=========================================="
+echo ""
